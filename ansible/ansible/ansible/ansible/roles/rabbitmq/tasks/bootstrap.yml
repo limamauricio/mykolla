@@ -1,0 +1,32 @@
+---
+# TODO(SamYaple): Improve check with a custom docker module to check if alive
+- name: Checking if a rabbitmq_data exists
+  command: docker exec rabbitmq_data stat /var/lib/rabbitmq/.erlang.cookie
+  register: exists
+  changed_when: False
+  failed_when: False
+  always_run: True
+
+- name: Starting rabbitmq-data container
+  kolla_docker:
+    action: "start_container"
+    common_options: "{{ docker_common_options }}"
+    image: "{{ rabbitmq_data_image_full }}"
+    name: "rabbitmq_data"
+    volumes: "/var/lib/rabbitmq/"
+
+- name: Running RabbitMQ bootstrap container
+  kolla_docker:
+    action: "start_container"
+    common_options: "{{ docker_common_options }}"
+    detach: False
+    environment:
+      KOLLA_BOOTSTRAP:
+      KOLLA_CONFIG_STRATEGY: "{{ config_strategy }}"
+      RABBITMQ_CLUSTER_COOKIE: "{{ rabbitmq_cluster_cookie }}"
+    image: "{{ rabbitmq_image_full }}"
+    name: "rabbitmq_bootstrap"
+    restart_policy: "never"
+    volumes: "{{ node_config_directory }}/rabbitmq/:{{ container_config_directory }}/:ro"
+    volumes_from: "rabbitmq_data"
+  when: exists.rc != 0

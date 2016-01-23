@@ -1,0 +1,27 @@
+---
+- name: Starting rsyslog container
+  kolla_docker:
+    action: "start_container"
+    common_options: "{{ docker_common_options }}"
+    image: "{{ rsyslog_image_full }}"
+    name: "rsyslog"
+    privileged: True
+    volumes:
+      - "{{ node_config_directory }}/rsyslog/:{{ container_config_directory }}/:ro"
+      - "/var/lib/kolla/dev:/dev"
+      - "rsyslog:/var/log"
+
+- name: Starting kolla-ansible container
+  kolla_docker:
+    action: "start_container"
+    common_options: "{{ docker_common_options }}"
+    environment:
+      ANSIBLE_NOCOLOR: "1"
+      ANSIBLE_LIBRARY: "/usr/share/ansible"
+    image: "{{ ansible_image_full }}"
+    name: "kolla_ansible"
+    privileged: True
+    volumes:
+      - "/dev/:/dev/"
+      - "/run/:/run/"
+      - "/var/lib/kolla/dev/log:/dev/log"

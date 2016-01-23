@@ -27,9 +27,9 @@
       - "/etc/kolla/config/global.conf"
       - "/etc/kolla/config/database.conf"
       - "/etc/kolla/config/messaging.conf"
-      - "/etc/kolla/config/cinder.conf"
-      - "/etc/kolla/config/cinder/{{ item }}.conf"
-    dest: "{{ node_config_directory }}/{{ item }}/cinder.conf"
+      - "/etc/kolla/config/manila.conf"
+      - "/etc/kolla/config/manila/{{ item }}.conf"
+    dest: "{{ node_config_directory }}/{{ item }}/manila.conf"
   with_items:
     - "manila-api"
     - "manila-scheduler"
