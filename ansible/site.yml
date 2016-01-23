@@ -162,3 +162,13 @@
     - { role: mistral,
         tags: mistral,
         when: enable_mistral | bool }
+
+- hosts:
+    - manila-api
+    - manila-share
+    - manila-scheduler
+    - rabbitmq
+  roles:
+    - { role: manila,
+        tags: manila,
+        when: enable_manila | bool }

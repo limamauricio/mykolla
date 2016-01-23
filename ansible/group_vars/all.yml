@@ -122,6 +122,8 @@ rgw_port: "6780"
 
 mistral_api_port: "8989"
 
+manila_api_port: "8786"
+
 ####################
 # Openstack options
 ####################

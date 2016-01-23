@@ -23,6 +23,8 @@ else
         mariadb \
         memcached \
         mistral{api,engine,executor} \
+	manila_{api,scheduler,share} \
+	bootstrap_manila \
         murano_{api,engine} \
         neutron_{server,agents,linuxbridge_agent,openvswitch_agent} \
         nova_{scheduler,novncproxy,consoleauth,conductor,api,compute,libvirt,spicehtml5proxy,compute_ironic} \
