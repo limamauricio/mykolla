@@ -1,0 +1,76 @@
+---
+- name: Disabling netfilter for bridges
+  sysctl: name="net.bridge.bridge-nf-call-{{ item }}" value=1 sysctl_set=yes
+  with_items:
+    - "iptables"
+    - "ip6tables"
+  when:
+    - set_sysctl | bool
+    - inventory_hostname in groups['compute']
+
+- name: Disabling reverse path filter on compute node
+  sysctl: name="net.ipv4.conf.{{ item }}.rp_filter" value=0 sysctl_set=yes
+  with_items:
+    - "all"
+    - "default"
+  when:
+    - set_sysctl | bool
+    - inventory_hostname in groups['neutron-agents']
+
+- name: Ensuring config directories exist
+  file:
+    path: "{{ node_config_directory }}/{{ item }}"
+    state: "directory"
+    recurse: yes
+  with_items:
+    - "nova-api"
+    - "nova-compute"
+    - "nova-compute-ironic"
+    - "nova-conductor"
+    - "nova-consoleauth"
+    - "nova-libvirt"
+    - "nova-novncproxy"
+    - "nova-scheduler"
+    - "nova-spicehtml5proxy"
+
+- name: Copying over config.json files for services
+  template:
+    src: "{{ item }}.json.j2"
+    dest: "{{ node_config_directory }}/{{ item }}/config.json"
+  with_items:
+    - "nova-api"
+    - "nova-compute"
+    - "nova-compute-ironic"
+    - "nova-conductor"
+    - "nova-consoleauth"
+    - "nova-libvirt"
+    - "nova-novncproxy"
+    - "nova-scheduler"
+    - "nova-spicehtml5proxy"
+
+- name: Copying over nova.conf
+  merge_configs:
+    vars:
+      service_name: "{{ item }}"
+    sources:
+      - "{{ role_path }}/templates/nova.conf.j2"
+      - "/etc/kolla/config/global.conf"
+      - "/etc/kolla/config/database.conf"
+      - "/etc/kolla/config/messaging.conf"
+      - "/etc/kolla/config/nova.conf"
+      - "/etc/kolla/config/nova/{{ item }}.conf"
+    dest: "{{ node_config_directory }}/{{ item }}/nova.conf"
+  with_items:
+    - "nova-api"
+    - "nova-compute"
+    - "nova-compute-ironic"
+    - "nova-conductor"
+    - "nova-consoleauth"
+    - "nova-novncproxy"
+    - "nova-scheduler"
+    - "nova-spicehtml5proxy"
+
+- name: Copying over libvirtd.conf
+  template:
+    src: "{{ role_path }}/templates/libvirtd.conf.j2"
+    dest: "{{ node_config_directory }}/nova-libvirt/libvirtd.conf"

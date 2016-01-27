@@ -1,0 +1,98 @@
+[DEFAULT]
+# Set auth strategy for usage of Keystone
+auth_strategy = keystone
+
+# Following opt is used for definition of share backends that should be enabled.
+# Values are conf groupnames that contain per manila-share service opts.
+enabled_share_backends = generic 
+
+# Enable protocols ‘NFS’ and ‘CIFS’ as those are the only supported
+# by Generic driver that we are configuring in this set up.
+# All available values are (‘NFS’, ‘CIFS’, ‘GlusterFS’, ‘HDFS’)
+enabled_share_protocols = NFS,CIFS
+
+# Following is password for user ‘neutron’ for interaction with Neutron.
+# It is required only when Neutron is set up in lab, and handling of
+# share servers is used within configured share drivers.
+neutron_admin_password = {{ neutron_keystone_password }}
+
+# Following is password for user ‘cinder’ for interaction with Cinder service.
+# Used only by Generic driver.
+cinder_admin_password = {{ cinder_keystone_password }}
+
+# Following is password for user ‘nova’ for interaction with Nova service.
+# Used only by Generic driver for the moment.
+nova_admin_password = {{ nova_keystone_password }}
+
+# Set the project/tenant name of the ‘service’ tenant. These should all be the
+# same value, but may be different than the default.
+neutron_admin_project_name = service
+cinder_admin_tenant_name = service
+nova_admin_tenant_name = service
+
+# Manila requires ‘share-type’ for share creation.
+# So, set here name of some share-type that will be used by default.
+default_share_type = default_share_type
+
+state_path = /opt/stack/data/manila
+osapi_share_extension = manila.api.contrib.standard_extensions
+rootwrap_config = /etc/manila/rootwrap.conf
+api_paste_config = /etc/manila/api-paste.ini
+share_name_template = share-%s
+
+# Set scheduler driver with usage of filters. Recommended.
+scheduler_driver = manila.scheduler.drivers.filter.FilterScheduler
+
+# Set following two opts to ‘True’ to get maximum info in logging.
+verbose = True
+debug = True
+
+[generic]
+# This is custom opt group that is used for storing opts of share-service.
+# This one is used only when enabled using opt `enabled_share_backends`
+# from DEFAULT group.
+
+# Set usage of Generic driver which uses Cinder as backend.
+share_driver = manila.share.drivers.generic.GenericShareDriver
+
+# Generic driver supports both driver modes - with and without handling
+# of share servers. So, we need to define explicitly which one we are
+# enabling using this driver.
+driver_handles_share_servers = True
+
+# Generic driver is the only driver that uses image from Glance for building
+# service VMs in Nova. And following are data for some specific image.
+# We used one defined in [1]
+# [1] https://github.com/openstack/manila/blob/6785cad9/devstack/plugin.sh#L86
+service_instance_password = ubuntu
+service_instance_user = ubuntu
+service_image_name = ubuntu_1204_nfs_cifs
+
+# These will be used for keypair creation and inserted into service VMs.
+path_to_private_key = /home/stack/.ssh/id_rsa
+path_to_public_key = /home/stack/.ssh/id_rsa.pub
+
+# Custom name for share backend.
+share_backend_name = default
+
+[oslo_messaging_rabbit]
+rabbit_userid = {{ rabbitmq_user }}
+rabbit_password = {{ rabbitmq_password }}
+rabbit_ha_queues = true
+rabbit_hosts = {% for host in groups['rabbitmq'] %}{{ hostvars[host]['ansible_' + hostvars[host]['api_interface']]['ipv4']['address'] }}:{{ rabbitmq_port }}{% if not loop.last %},{% endif %}{% endfor %}
+
+[oslo_concurrency]
+lock_path = /var/lib/manila/tmp
+
+[database]
+connection = mysql+pymysql://{{ manila_database_user }}:{{ manila_database_password }}@{{ manila_database_address }}/{{ manila_database_name }}
+
+[keystone_authtoken]
+auth_uri = http://{{ kolla_internal_address }}:{{ keystone_public_port }}
+auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}
+auth_type = password
+project_domain_id = default
+user_domain_id = default
+project_name = service
+username = manila
+password = {{ manila_keystone_password }}

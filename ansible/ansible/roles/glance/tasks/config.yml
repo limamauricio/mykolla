@@ -1,0 +1,47 @@
+---
+- name: Ensuring config directories exist
+  file:
+    path: "{{ node_config_directory }}/{{ item }}"
+    state: "directory"
+    recurse: yes
+  with_items:
+    - "glance-api"
+    - "glance-registry"
+
+- name: Copying over config.json files for services
+  template:
+    src: "{{ item }}.json.j2"
+    dest: "{{ node_config_directory }}/{{ item }}/config.json"
+  with_items:
+    - "glance-api"
+    - "glance-registry"
+
+- name: Copying over glance-api.conf
+  merge_configs:
+    vars:
+      service_name: "{{ item }}"
+    sources:
+      - "{{ role_path }}/templates/glance-api.conf.j2"
+      - "/etc/kolla/config/global.conf"
+      - "/etc/kolla/config/database.conf"
+      - "/etc/kolla/config/messaging.conf"
+      - "/etc/kolla/config/glance.conf"
+      - "/etc/kolla/config/glance/{{ item }}.conf"
+    dest: "{{ node_config_directory }}/{{ item }}/glance-api.conf"
+  with_items:
+    - "glance-api"
+
+- name: Copying over glance-registry.conf
+  merge_configs:
+    vars:
+      service_name: "{{ item }}"
+    sources:
+      - "{{ role_path }}/templates/glance-registry.conf.j2"
+      - "/etc/kolla/config/global.conf"
+      - "/etc/kolla/config/database.conf"
+      - "/etc/kolla/config/messaging.conf"
+      - "/etc/kolla/config/glance.conf"
+      - "/etc/kolla/config/glance/{{ item }}.conf"
+    dest: "{{ node_config_directory }}/{{ item }}/glance-registry.conf"
+  with_items:
+    - "glance-registry"
