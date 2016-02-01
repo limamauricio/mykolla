@@ -1,0 +1,92 @@
+[DEFAULT]
+debug = {{ manila_logging_debug }}
+
+my_ip = {{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }} 
+# Following opt is used for definition of share backends that should be enabled.
+# Values are conf groupnames that contain per manila-share service opts.
+enabled_share_backends = generic
+
+# Following is password for user ‘neutron’ for interaction with Neutron.
+# It is required only when Neutron is set up in lab, and handling of
+# share servers is used within configured share drivers.
+#neutron_admin_auth_url = http://{{ kolla_internal_address }}:{{ neutron_server_port }} 
+#neutron_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}/v2.0
+#neutron_admin_project_name = service
+#neutron_admin_username = neutron
+neutron_admin_password = {{ neutron_keystone_password }}
+
+neutron_auth_strategy = keystone
+
+# Following is password for user ‘cinder’ for interaction with Cinder service.
+# Used only by Generic driver.
+#cinder_admin_auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}/v2.0
+#cinder_admin_tenant_name = service
+#cinder_admin_username = cinder
+cinder_admin_password = {{ cinder_keystone_password }}
+
+# Following is password for user ‘nova’ for interaction with Nova service.
+# Used only by Generic driver for the moment.
+#nova_admin_auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}/v2.0
+#nova_admin_tenant_name = service
+#nova_admin_username = nova
+nova_admin_password = {{ nova_keystone_password }}
+
+# Manila requires ‘share-type’ for share creation.
+# So, set here name of some share-type that will be used by default.
+default_share_type = default_share_type
+
+rootwrap_config = /etc/manila/rootwrap.conf
+api_paste_config = /etc/manila/api-paste.ini
+
+rpc_backend = rabbit
+
+[generic]
+# This is custom opt group that is used for storing opts of share-service.
+# This one is used only when enabled using opt `enabled_share_backends`
+# from DEFAULT group.
+
+# Set usage of Generic driver which uses Cinder as backend.
+share_driver = manila.share.drivers.generic.GenericShareDriver
+
+# Generic driver supports both driver modes - with and without handling
+# of share servers. So, we need to define explicitly which one we are
+# enabling using this driver.
+driver_handles_share_servers = True
+
+# Generic driver is the only driver that uses image from Glance for building
+# service VMs in Nova. And following are data for some specific image.
+# We used one defined in [1]
+# [1] https://github.com/openstack/manila/blob/6785cad9/devstack/plugin.sh#L86
+service_instance_password = {{ service_instance_password }}
+service_instance_user = {{ service_instance_user }}
+service_image_name = manila-service-image
+
+# These will be used for keypair creation and inserted into service VMs.
+path_to_private_key = /home/stack/.ssh/id_rsa
+path_to_public_key = /home/stack/.ssh/id_rsa.pub
+
+# Custom name for share backend.
+share_backend_name = default
+
+[oslo_messaging_rabbit]
+rabbit_userid = {{ rabbitmq_user }}
+rabbit_password = {{ rabbitmq_password }}
+rabbit_ha_queues = true
+rabbit_hosts = {% for host in groups['rabbitmq'] %}{{ hostvars[host]['ansible_' + hostvars[host]['api_interface']]['ipv4']['address'] }}:{{ rabbitmq_port }}{% if not loop.last %},{% endif %}{% endfor %}
+
+[oslo_concurrency]
+lock_path = /var/lib/manila/tmp
+
+[database]
+connection = mysql+pymysql://{{ manila_database_user }}:{{ manila_database_password }}@{{ manila_database_address }}/{{ manila_database_name }}
+
+[keystone_authtoken]
+#signing_dir = /var/lib/manila_cache
+auth_uri = http://{{ kolla_internal_address }}:{{ keystone_public_port }}
+auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}
+auth_type = password
+project_domain_id = default
+user_domain_id = default
+project_name = service
+username = manila
+password = {{ manila_keystone_password }}

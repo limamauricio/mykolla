@@ -1,0 +1,28 @@
+FROM {{ namespace }}/{{ image_prefix }}ironic-base:{{ tag }}
+MAINTAINER {{ maintainer }}
+
+{% if base_distro in ['centos', 'fedora', 'oraclelinux', 'rhel'] %}
+
+RUN yum -y install \
+        tftp-server \
+        syslinux-tftpboot \
+    && yum clean all \
+    && mkdir -p /tftpboot \
+    && cp /var/lib/tftpboot/chain.c32 /tftpboot
+
+{% elif base_distro in ['ubuntu', 'debian'] %}
+
+RUN apt-get install -y --no-install-recommends \
+        tftpd-hpa \
+        syslinux-common \
+        syslinux \
+    && apt-get clean \
+    && mkdir -p /tftpboot \
+    && chown -R ironic: /tftpboot \
+    && cp /usr/lib/syslinux/pxelinux.0 /usr/lib/syslinux/chain.c32 /tftpboot
+
+{% endif %}
+
+COPY tftp-map-file /tftpboot/map-file
+
+{{ include_footer }}

@@ -1,0 +1,68 @@
+FROM {{ namespace }}/{{ image_prefix }}base:{{ tag }}
+MAINTAINER {{ maintainer }}
+
+{% if base_distro in ['centos', 'fedora', 'oraclelinux', 'rhel'] %}
+
+# TODO(mandre) remove MariaDB-shared once Percona has fixed its packaging issue
+RUN yum -y install \
+        gcc \
+        git \
+        libffi-devel \
+        libxml2-devel \
+        libxslt-devel \
+        mariadb-devel \
+        mariadb-libs \
+        MariaDB-shared \
+        openssl-devel \
+        python-devel \
+        openssh-clients \
+    && yum clean all
+
+{% elif base_distro in ['ubuntu', 'debian'] %}
+
+RUN apt-get -y --no-install-recommends install \
+        build-essential \
+        ca-certificates \
+        git \
+        libffi-dev \
+        libmariadbclient-dev \
+        libssl-dev \
+        libxslt1-dev \
+        python-dev \
+    && apt-get clean
+
+{% endif %}
+
+# TODO(jeffrey4l): Pin the pip to the 7.1.2. version. latest pip
+# (now 8.0) can not install the package when conflict with the
+# system. The best solution should use the virtualenv for
+# isolation or following bug is fixed:
+# https://github.com/pypa/pip/pull/3389
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
+    && python get-pip.py \
+    && rm get-pip.py \
+    && pip install pip==7.1.2 \
+    && pip --no-cache-dir install --upgrade wheel \
+    && pip --no-cache-dir install \
+        MySQL-python \
+        os-client-config==1.13.1 \
+        pyudev \
+        shade==1.3.0
+
+RUN git clone --depth 1 -b v2.0.0-0.7.rc2 https://github.com/ansible/ansible.git \
+    && cd ansible \
+    && git submodule update --init --recursive \
+    && pip --no-cache-dir install .
+
+RUN mkdir -p /etc/ansible /usr/share/ansible /home/ansible \
+    && echo 'localhost ansible_connection=local' > /etc/ansible/hosts \
+    && useradd --user-group ansible --groups kolla
+
+COPY find_disks.py kolla_keystone_service.py kolla_keystone_user.py kolla_sanity.py kolla_zookeeper.py /usr/share/ansible/
+COPY ansible.cfg /home/ansible/.ansible.cfg
+
+CMD ["/bin/sleep", "infinity"]
+
+{{ include_footer }}
+
+USER ansible

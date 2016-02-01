@@ -1,0 +1,29 @@
+FROM {{ namespace }}/{{ image_prefix }}openstack-base:{{ tag }}
+MAINTAINER {{ maintainer }}
+
+{% if install_type == 'binary' %}
+    {% if base_distro in ['centos', 'fedora', 'oraclelinux', 'rhel'] %}
+
+RUN yum -y install openstack-manila \
+    yum -y install python-manilaclient \
+    && yum clean all
+
+    {% endif %}
+{% elif install_type == 'source' %}
+
+ADD manila-base-archive /manila-base-source
+RUN ln -s manila-base-source/* manila \
+    && useradd --user-group manila \
+    && /var/lib/kolla/venv/bin/pip --no-cache-dir install --upgrade -c requirements/upper-constraints.txt /manila \
+    && mkdir -p /var/lib/manila /etc/manila /var/log/manila /home/manila \
+    && cp -r /manila/etc/manila/* /etc/manila/ \
+    && chown -R manila: /etc/manila /var/log/manila /home/manila /var/lib/manila
+
+COPY manila_sudoers /etc/sudoers.d/manila_sudoers
+RUN chmod 750 /etc/sudoers.d \
+    && chmod 440 /etc/sudoers.d/manila_sudoers
+
+
+{% endif %}
+
+RUN usermod -a -G kolla manila
