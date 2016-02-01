@@ -1,3 +1,0 @@
----
-dependencies:
-  - { role: common, project_yaml: 'glance.yml' }
