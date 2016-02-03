@@ -2,34 +2,10 @@
 debug = {{ manila_logging_debug }}
 
 my_ip = {{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }} 
+
 # Following opt is used for definition of share backends that should be enabled.
 # Values are conf groupnames that contain per manila-share service opts.
 enabled_share_backends = generic
-
-# Following is password for user ‘neutron’ for interaction with Neutron.
-# It is required only when Neutron is set up in lab, and handling of
-# share servers is used within configured share drivers.
-#neutron_admin_auth_url = http://{{ kolla_internal_address }}:{{ neutron_server_port }} 
-#neutron_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}/v2.0
-#neutron_admin_project_name = service
-#neutron_admin_username = neutron
-neutron_admin_password = {{ neutron_keystone_password }}
-
-neutron_auth_strategy = keystone
-
-# Following is password for user ‘cinder’ for interaction with Cinder service.
-# Used only by Generic driver.
-#cinder_admin_auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}/v2.0
-#cinder_admin_tenant_name = service
-#cinder_admin_username = cinder
-cinder_admin_password = {{ cinder_keystone_password }}
-
-# Following is password for user ‘nova’ for interaction with Nova service.
-# Used only by Generic driver for the moment.
-#nova_admin_auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}/v2.0
-#nova_admin_tenant_name = service
-#nova_admin_username = nova
-nova_admin_password = {{ nova_keystone_password }}
 
 # Manila requires ‘share-type’ for share creation.
 # So, set here name of some share-type that will be used by default.
@@ -39,6 +15,46 @@ rootwrap_config = /etc/manila/rootwrap.conf
 api_paste_config = /etc/manila/api-paste.ini
 
 rpc_backend = rabbit
+
+[neutron]
+# Following is password for user ‘neutron’ for interaction with Neutron.
+# It is required only when Neutron is set up in lab, and handling of
+# share servers is used within configured share drivers.
+url = http://{{ kolla_internal_address }}:{{ neutron_server_port }}
+auth_strategy = keystone
+metadata_proxy_shared_secret = {{ metadata_secret }}
+service_metadata_proxy = true
+
+auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}
+auth_plugin = password
+project_domain_name = default
+user_domain_id = default
+project_name = service
+username = neutron
+password = {{ neutron_keystone_password }}
+
+[cinder]
+# Following is password for user ‘cinder’ for interaction with Cinder service.
+# Used only by Generic driver.
+auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}
+auth_type = password
+project_domain_id = default
+user_domain_id = default
+project_name = service
+username = {{ cinder_keystone_user }}
+password = {{ cinder_keystone_password }}
+
+[nova]
+# Following is password for user ‘nova’ for interaction with Nova service.
+# Used only by Generic driver for the moment.
+auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}
+auth_type = password
+project_domain_id = default
+user_domain_id = default
+region_name = {{ openstack_region_name }}
+project_name = service
+username = nova
+password = {{ nova_keystone_password }}
 
 [generic]
 # This is custom opt group that is used for storing opts of share-service.
@@ -81,7 +97,7 @@ lock_path = /var/lib/manila/tmp
 connection = mysql+pymysql://{{ manila_database_user }}:{{ manila_database_password }}@{{ manila_database_address }}/{{ manila_database_name }}
 
 [keystone_authtoken]
-#signing_dir = /var/lib/manila_cache
+signing_dir = /var/cache/manila
 auth_uri = http://{{ kolla_internal_address }}:{{ keystone_public_port }}
 auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}
 auth_type = password

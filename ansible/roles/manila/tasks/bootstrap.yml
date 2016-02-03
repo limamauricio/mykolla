@@ -46,7 +46,8 @@
     image: "{{ manila_api_image_full }}"
     name: "bootstrap_manila"
     restart_policy: "never"
-    volumes: "{{ node_config_directory }}/manila-api/:{{ container_config_directory }}/:ro"
+    volumes:
+      - "{{ node_config_directory }}/manila-api/:{{ container_config_directory }}/:ro"
   run_once: True
   delegate_to: "{{ groups['manila-api'][0] }}"
   when: database_created
