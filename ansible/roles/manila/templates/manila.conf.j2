@@ -1,5 +1,6 @@
 [DEFAULT]
-debug = {{ manila_logging_debug }}
+debug = True
+verbose = True
 
 my_ip = {{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }} 
 
@@ -16,45 +17,45 @@ api_paste_config = /etc/manila/api-paste.ini
 
 rpc_backend = rabbit
 
-[neutron]
+#[neutron]
 # Following is password for user ‘neutron’ for interaction with Neutron.
 # It is required only when Neutron is set up in lab, and handling of
 # share servers is used within configured share drivers.
-url = http://{{ kolla_internal_address }}:{{ neutron_server_port }}
-auth_strategy = keystone
-metadata_proxy_shared_secret = {{ metadata_secret }}
-service_metadata_proxy = true
+neutron_url = http://{{ kolla_internal_address }}:{{ neutron_server_port }}
+#auth_strategy = keystone
+#metadata_proxy_shared_secret = {{ metadata_secret }}
+#service_metadata_proxy = true
 
-auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}
-auth_plugin = password
-project_domain_name = default
-user_domain_id = default
-project_name = service
-username = neutron
-password = {{ neutron_keystone_password }}
+neutron_admin_auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}/v2.0
+#auth_plugin = password
+#project_domain_name = default
+#user_domain_id = default
+neutron_admin_project_name = service
+neutron_admin_username = neutron
+neutron_admin_password = {{ neutron_keystone_password }}
 
-[cinder]
+#[cinder]
 # Following is password for user ‘cinder’ for interaction with Cinder service.
 # Used only by Generic driver.
-auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}
-auth_type = password
-project_domain_id = default
-user_domain_id = default
-project_name = service
-username = cinder_keystone_user
-password = {{ cinder_keystone_password }}
+cinder_admin_auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}/v2.0
+#auth_type = password
+#project_domain_id = default
+#user_domain_id = default
+cinder_admin_tenant_name = service
+cinder_admin_username = cinder
+cinder_admin_password = {{ cinder_keystone_password }}
 
-[nova]
+#[nova]
 # Following is password for user ‘nova’ for interaction with Nova service.
 # Used only by Generic driver for the moment.
-auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}
-auth_type = password
-project_domain_id = default
-user_domain_id = default
-region_name = {{ openstack_region_name }}
-project_name = service
-username = nova
-password = {{ nova_keystone_password }}
+nova_admin_auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}/v2.0
+#auth_type = password
+#project_domain_id = default
+#user_domain_id = default
+#region_name = {{ openstack_region_name }}
+nova_admin_tenant_name = service
+nova_admin_username = nova
+nova_admin_password = {{ nova_keystone_password }}
 
 [generic]
 # This is custom opt group that is used for storing opts of share-service.
@@ -82,7 +83,7 @@ path_to_private_key = /home/stack/.ssh/id_rsa
 path_to_public_key = /home/stack/.ssh/id_rsa.pub
 
 # Custom name for share backend.
-share_backend_name = default
+share_backend_name = GENERIC 
 
 [oslo_messaging_rabbit]
 rabbit_userid = {{ rabbitmq_user }}
@@ -100,7 +101,7 @@ connection = mysql+pymysql://{{ manila_database_user }}:{{ manila_database_passw
 signing_dir = /var/cache/manila
 auth_uri = http://{{ kolla_internal_address }}:{{ keystone_public_port }}
 auth_url = http://{{ kolla_internal_address }}:{{ keystone_admin_port }}
-auth_type = password
+auth_plugin = password
 project_domain_id = default
 user_domain_id = default
 project_name = service

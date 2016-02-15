@@ -11,6 +11,7 @@ RUN yum -y install openstack-keystone \
     && yum clean all
 
 RUN mkdir -p /var/www/cgi-bin/keystone \
+    && cp -a /usr/share/keystone/keystone-dist-paste.ini /etc/keystone/keystone-paste.ini \
     && cp -a /usr/share/keystone/keystone.wsgi /var/www/cgi-bin/keystone/main \
     && cp -a /usr/share/keystone/keystone.wsgi /var/www/cgi-bin/keystone/admin \
     && sed -i -r 's,^(Listen 80),#\1,' /etc/httpd/conf/httpd.conf
@@ -59,6 +60,11 @@ RUN ln -s keystone-source/* keystone \
     && chown -R keystone: /etc/keystone /var/www/cgi-bin/keystone /var/log/apache2 /home/keystone
 
 {% endif %}
+
+# NOTE(SamYaple): This is to reintroduce a deprecated option as a quick-fix
+# until the correct new procedure is implemented.
+# TODO(SamYaple): Replace this with `keystone-manage bootstrap`
+RUN sed -i 's|token_auth json_body|token_auth admin_token_auth json_body|g' /etc/keystone/keystone-paste.ini
 
 RUN chown -R keystone: /var/www/cgi-bin/keystone \
     && chmod 755 /var/www/cgi-bin/keystone/*

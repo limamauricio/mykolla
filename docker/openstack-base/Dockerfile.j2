@@ -39,7 +39,6 @@ RUN yum -y install \
 
 # This will prevent questions from being asked during the install
 ENV DEBIAN_FRONTEND noninteractive
-COPY oslo-log-bug1499620.patch /var/lib/kolla/oslo-log-bug1499620.patch
 # There is no python-tuskarclient in ubuntu 14.04
 RUN apt-get install -y --no-install-recommends \
         python-barbicanclient \
@@ -64,9 +63,6 @@ RUN apt-get install -y --no-install-recommends \
         openssl \
         patch \
     && apt-get clean
-
-# python-oslo-log patch to bug 1499620 (it fixed in python-oslo-log 1.11.1)
-RUN patch -d /usr/lib/python2.7/site-packages -p1 < /var/lib/kolla/oslo-log-bug1499620.patch
 
     {% endif %}
 {% elif install_type == 'source' %}
@@ -105,23 +101,17 @@ RUN apt-get install -y --no-install-recommends \
     {% endif %}
 
 ADD openstack-base-archive /openstack-base-source
-# TODO(jeffrey4l): Pin the pip to the 7.1.2. version. latest pip
-# (now 8.0) can not install the package when conflict with the
-# system. The best solution should use the virtualenv for
-# isolation or following bug is fixed:
-# https://github.com/pypa/pip/pull/3389
 RUN ln -s openstack-base-source/* /requirements \
-    && mkdir /var/lib/kolla \
+    && mkdir -p /var/lib/kolla \
     && curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
     && python get-pip.py \
     && rm get-pip.py \
-    && pip install pip==7.1.2 \
     && pip --no-cache-dir install -U virtualenv \
     && virtualenv --system-site-packages /var/lib/kolla/venv \
-    && /var/lib/kolla/venv/bin/pip --no-cache-dir install pip==7.1.2 \
     && /var/lib/kolla/venv/bin/pip --no-cache-dir install --upgrade -c requirements/upper-constraints.txt \
         jinja2 \
         kazoo \
+        keystonemiddleware \
         python-barbicanclient \
         python-ceilometerclient \
         python-congressclient \
