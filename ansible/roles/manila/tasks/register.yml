@@ -1,6 +1,6 @@
 ---
 - name: Creating the Manila service and endpoint
-  command: docker exec -t kolla_ansible /usr/bin/ansible localhost
+  command: docker exec -t kolla_toolbox /usr/bin/ansible localhost
     -m kolla_keystone_service
     -a "service_name=manila
         service_type=share
@@ -20,7 +20,7 @@
   run_once: True
 
 - name: Creating the Manila v2 service and endpoint
-  command: docker exec -t kolla_ansible /usr/bin/ansible localhost
+  command: docker exec -t kolla_toolbox /usr/bin/ansible localhost
     -m kolla_keystone_service
     -a "service_name=manilav2
         service_type=sharev2
@@ -40,7 +40,7 @@
   run_once: True
 
 - name: Creating the Manila project, user, and role
-  command: docker exec -t kolla_ansible /usr/bin/ansible localhost
+  command: docker exec -t kolla_toolbox /usr/bin/ansible localhost
     -m kolla_keystone_user
     -a "project=service
         user=manila
