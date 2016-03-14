@@ -1,6 +1,14 @@
 Manila in Kolla
 =============
 
+Overview
+--------
+Currently Kolla can deploy the manila services:
+
+* manila-api
+* manila-scheduler
+* manila-backup
+
 The OpenStack Shared File Systems service (Manila) provides file storage to a
 virtual machine. The Shared File Systems service provides an infrastructure
 for managing and provisioning of file shares. The service also enables
@@ -9,24 +17,19 @@ them.
 
 For more information, see `Configuration Reference Guide <http://docs.openstack.org/mitaka/config-reference/content/section_shared-file-systems-overview.html>`__.
 
-Requirements
-------------
+Important
+---------
 
-* A minimum of 3 hosts for a vanilla deploy
-* A minimum of 1 block device per host
+For simplicity, this guide describes configuring the Shared File Systems
+service to use the ``generic`` back end with the driver handles share
+server mode (DHSS) enabled that uses Compute (nova), Networking (neutron)
+and Block storage (cinder) services.
+Networking service configuration requires the capability of networks being
+attached to a public router in order to create share networks.
 
-.. important::
-
-    For simplicity, this guide describes configuring the Shared File Systems
-    service to use the ``generic`` back end with the driver handles share
-    server mode (DHSS) enabled that uses Compute (nova), Networking (neutron)
-    and Block storage (cinder) services.
-    Networking service configuration requires the capability of networks being
-    attached to a public router in order to create share networks.
-
-    Before you proceed, ensure that Compute, Networking and Block storage
-    services are properly working. For networking service, ensure that option
-    2 is properly configured.
+Before you proceed, ensure that Compute, Networking and Block storage
+services are properly working. For networking service, ensure that option
+2 is properly configured.
 
 
 Preparation and Deployment
@@ -76,18 +79,13 @@ Verify operation
 
 Verify operation of the Shared File Systems service.
 
-.. note::
-
-   Perform these commands on the controller node.
-
-#. Source the ``admin`` credentials to gain access to
-   admin-only CLI commands:
+* Source the ``admin`` credentials to gain access to admin-only CLI commands:
 
 ::
 
       $ source admin-openrc.sh
 
-#. List service components to verify successful launch of each process:
+* List service components to verify successful launch of each process:
 
 ::
 
@@ -117,13 +115,13 @@ NFS/CIFS shares are served.
 Determine the configuration of the share server
 -----------------------------------------------
 
-#. Source the admin credentials to gain access to admin-only CLI commands:
+* Source the admin credentials to gain access to admin-only CLI commands:
 
 ::
 
       $ source admin-openrc.sh
 
-#. Create a default share type before running manila-share service:
+* Create a default share type before running manila-share service:
 
 ::
 
