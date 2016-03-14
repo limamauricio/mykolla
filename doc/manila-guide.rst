@@ -113,11 +113,6 @@ a network and a share-network for being used to create a share server.
 For that back end configuration, the share server is an instance where
 NFS/CIFS shares are served.
 
-* Note::
-
-   This configuration automatically creates a cinder volume for every share.
-   The cinder volumes are attached to share servers according to the
-   definition of a share network.
 
 Determine the configuration of the share server
 -----------------------------------------------
@@ -258,17 +253,6 @@ Create a share
 
 * Configure user access to the new share before attempting to mount it via
    the network:
-
-* Important ::
-
-      The image used for launching an instance and mounting a share must have
-      the NFS packages provided by the distro. Example: The cirros image
-      created at the image service section is not enough.
-
-* Important ::
-
-      Use an instance that is connected to the private network used to create
-      the share-network.
 
 ::
 
