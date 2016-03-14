@@ -1,0 +1,326 @@
+Manila in Kolla
+=============
+
+The OpenStack Shared File Systems service (Manila) provides file storage to a
+virtual machine. The Shared File Systems service provides an infrastructure
+for managing and provisioning of file shares. The service also enables
+management of share types as well as share snapshots if a driver supports
+them.
+
+For more information, see `Configuration Reference Guide <http://docs.openstack.org/mitaka/config-reference/content/section_shared-file-systems-overview.html>`__.
+
+Requirements
+------------
+
+* A minimum of 3 hosts for a vanilla deploy
+* A minimum of 1 block device per host
+
+.. important::
+
+    For simplicity, this guide describes configuring the Shared File Systems
+    service to use the ``generic`` back end with the driver handles share
+    server mode (DHSS) enabled that uses Compute (nova), Networking (neutron)
+    and Block storage (cinder) services.
+    Networking service configuration requires the capability of networks being
+    attached to a public router in order to create share networks.
+
+    Before you proceed, ensure that Compute, Networking and Block storage
+    services are properly working. For networking service, ensure that option
+    2 is properly configured.
+
+
+Preparation and Deployment
+--------------------------
+
+By default Manila uses neutron_plugin_agent = linuxbridge. But the default for
+Kolla is openvswitch, this guide will use Kolla default configuration, but you
+can change it in /etc/kolla/globals.yml:
+
+::
+
+    # Valid options are [ openvswitch, linuxbridge ]
+    #neutron_plugin_agent: "openvswitch"
+
+Enable Manila in /etc/kolla/globals.yml:
+
+::
+
+    enable_manila: "yes"
+
+
+Cinder and Ceph are required, enable it in /etc/kolla/globals.yml:
+
+::
+
+    enable_cinder: "yes"
+    enable_ceph: "yes"
+
+By default Manila uses flavor id 100 for its file systems. To Manila works
+either create a new flavor with id 100 or change the id to use default nova
+flavor ids. Ex: manila_instance_flavor_id: "2" to use the flavor m1.small
+
+::
+
+    manila_instance_flavor_id: "2"
+
+
+Deploy the Manila OpenStack:
+
+::
+
+    kolla-ansible deploy -i path/to/inventory
+
+
+Verify operation
+----------------
+
+Verify operation of the Shared File Systems service.
+
+.. note::
+
+   Perform these commands on the controller node.
+
+#. Source the ``admin`` credentials to gain access to
+   admin-only CLI commands:
+
+   .. code-block:: console
+
+      $ source admin-openrc.sh
+
+#. List service components to verify successful launch of each process:
+
+   .. code-block:: console
+
+      $ manila service-list
+      +------------------+----------------+------+---------+-------+----------------------------+-----------------+
+      |      Binary      |    Host        | Zone |  Status | State |         Updated_at         | Disabled Reason |
+      +------------------+----------------+------+---------+-------+----------------------------+-----------------+
+      | manila-scheduler | controller     | nova | enabled |   up  | 2014-10-18T01:30:54.000000 |       None      |
+      | manila-share     | share1@generic | nova | enabled |   up  | 2014-10-18T01:30:57.000000 |       None      |
+      +------------------+----------------+------+---------+-------+----------------------------+-----------------+
+
+Using a Cache Tier
+------------------
+
+An optional
+`cache tier <http://docs.ceph.com/docs/hammer/rados/operations/cache-tiering/>`_
+can be deployed by formatting at least one cache device and enabling cache
+tiering in the globals.yml configuration file.
+
+To prepare an OSD as a cache device, execute the following operations:
+
+::
+
+    # <WARNING ALL DATA ON $DISK will be LOST!>
+    # where $DISK is /dev/sdb or something similar
+    parted $DISK -s -- mklabel gpt mkpart KOLLA_CEPH_OSD_CACHE_BOOTSTRAP 1 -1
+
+Enable the Ceph cache tier in /etc/kolla/globals.yml:
+
+::
+
+    enable_ceph: "yes"
+    ceph_enable_cache: "yes"
+    # Valid options are [ forward, none, writeback ]
+    ceph_cache_mode: "writeback"
+
+After this run the playbooks as you normally would. For example:
+
+::
+
+    kolla-ansible deploy -i path/to/inventory
+
+Launch an Instance
+~~~~~~~~~~~~~~~~~~~
+
+Before being able to create a share, the manila with the generic driver and
+the DHSS mode enabled requires the definition of at least an image,
+a network and a share-network for being used to create a share server.
+For that back end configuration, the share server is an instance where
+NFS/CIFS shares are served.
+
+.. note::
+
+   This configuration automatically creates a cinder volume for every share.
+   The cinder volumes are attached to share servers according to the
+   definition of a share network.
+
+Determine the configuration of the share server
+-----------------------------------------------
+
+#. Source the admin credentials to gain access to admin-only CLI commands:
+
+   .. code-block:: console
+
+      $ source admin-openrc.sh
+
+#. Create a default share type before running manila-share service:
+
+::
+
+      $ manila type-create default_share_type True
+      +--------------------------------------+--------------------+------------+------------+-------------------------------------+-------------------------+$
+      | ID                                   | Name               | Visibility | is_default | required_extra_specs                | optional_extra_specs    |$
+      +--------------------------------------+--------------------+------------+------------+-------------------------------------+-------------------------+$
+      | 8a35da28-0f74-490d-afff-23664ecd4f01 | default_share_type | public     | -          | driver_handles_share_servers : True | snapshot_support : True |$
+      +--------------------------------------+--------------------+------------+------------+-------------------------------------+-------------------------+$
+
+#. Create a manila share server image to the Image service:
+
+::
+
+      $ glance image-create \
+      --copy-from http://tarballs.openstack.org/manila-image-elements/images/manila-service-image-master.qcow2 \
+      --name "manila-service-image" \
+      --disk-format qcow2 \
+      --container-format bare \
+      --visibility public --progress
+      [=============================>] 100%
+      +------------------+--------------------------------------+
+      | Property         | Value                                |
+      +------------------+--------------------------------------+
+      | checksum         | 48a08e746cf0986e2bc32040a9183445     |
+      | container_format | bare                                 |
+      | created_at       | 2016-01-26T19:52:24Z                 |
+      | disk_format      | qcow2                                |
+      | id               | 1fc7f29e-8fe6-44ef-9c3c-15217e83997c |
+      | min_disk         | 0                                    |
+      | min_ram          | 0                                    |
+      | name             | manila-service-image                 |
+      | owner            | e2c965830ecc4162a002bf16ddc91ab7     |
+      | protected        | False                                |
+      | size             | 306577408                            |
+      | status           | active                               |
+      | tags             | []                                   |
+      | updated_at       | 2016-01-26T19:52:28Z                 |
+      | virtual_size     | None                                 |
+      | visibility       | public                               |
+      +------------------+--------------------------------------+
+
+#. List available networks in order to get id and subnets of the private
+   network:
+
+::
+
+      $ neutron net-list
+      +--------------------------------------+---------+----------------------------------------------------+
+      | id                                   | name    | subnets                                            |
+      +--------------------------------------+---------+----------------------------------------------------+
+      | 0e62efcd-8cee-46c7-b163-d8df05c3c5ad | public  | 5cc70da8-4ee7-4565-be53-b9c011fca011 10.3.31.0/24  |
+      | 7c6f9b37-76b4-463e-98d8-27e5686ed083 | private | 3482f524-8bff-4871-80d4-5774c2730728 172.16.1.0/24 |
+      +--------------------------------------+---------+----------------------------------------------------+
+
+#. Creating a share network
+
+::
+      $ manila share-network-create --name demo-share-network1 \
+      --neutron-net-id PRIVATE_NETWORK_ID \
+      --neutron-subnet-id PRIVATE_NETWORK_SUBNET_ID
+      +-------------------+--------------------------------------+
+      | Property          | Value                                |
+      +-------------------+--------------------------------------+
+      | name              | demo-share-network1                  |
+      | segmentation_id   | None                                 |
+      | created_at        | 2016-01-26T20:03:41.877838           |
+      | neutron_subnet_id | 3482f524-8bff-4871-80d4-5774c2730728 |
+      | updated_at        | None                                 |
+      | network_type      | None                                 |
+      | neutron_net_id    | 7c6f9b37-76b4-463e-98d8-27e5686ed083 |
+      | ip_version        | None                                 |
+      | nova_net_id       | None                                 |
+      | cidr              | None                                 |
+      | project_id        | e2c965830ecc4162a002bf16ddc91ab7     |
+      | id                | 58b2f0e6-5509-4830-af9c-97f525a31b14 |
+      | description       | None                                 |
+      +-------------------+--------------------------------------+
+
+Create a share
+--------------
+
+#. Create a NFS share using the share network:
+
+::
+
+      $ manila create NFS 1 --name demo-share1 --share-network demo-share-network1
+      +-----------------------------+--------------------------------------+
+      | Property                    | Value                                |
+      +-----------------------------+--------------------------------------+
+      | status                      | None                                 |
+      | share_type_name             | None                                 |
+      | description                 | None                                 |
+      | availability_zone           | None                                 |
+      | share_network_id            | None                                 |
+      | export_locations            | []                                   |
+      | host                        | None                                 |
+      | snapshot_id                 | None                                 |
+      | is_public                   | False                                |
+      | task_state                  | None                                 |
+      | snapshot_support            | True                                 |
+      | id                          | 016ca18f-bdd5-48e1-88c0-782e4c1aa28c |
+      | size                        | 1                                    |
+      | name                        | demo-share1                          |
+      | share_type                  | None                                 |
+      | created_at                  | 2016-01-26T20:08:50.502877           |
+      | export_location             | None                                 |
+      | share_proto                 | NFS                                  |
+      | consistency_group_id        | None                                 |
+      | source_cgsnapshot_member_id | None                                 |
+      | project_id                  | 48e8c35b2ac6495d86d4be61658975e7     |
+      | metadata                    | {}                                   |
+      +-----------------------------+--------------------------------------+
+
+#. After some time, the share status should change from ``creating``
+   to ``available``:
+
+::
+
+      $ manila list
+      +--------------------------------------+-------------+------+-------------+-----------+-----------+--------------------------------------+-----------------------------+-------------------+
+      | ID                                   | Name        | Size | Share Proto | Status    | Is Public | Share Type                           | Host                        | Availability Zone |
+      +--------------------------------------+-------------+------+-------------+-----------+-----------+--------------------------------------+-----------------------------+-------------------+
+      | 5f8a0574-a95e-40ff-b898-09fd8d6a1fac | demo-share1 | 1    | NFS         | available | False     | 8a35da28-0f74-490d-afff-23664ecd4f01 | storagenode@generic#GENERIC | nova              |
+      +--------------------------------------+-------------+------+-------------+-----------+-----------+--------------------------------------+-----------------------------+-------------------+
+
+#. Configure user access to the new share before attempting to mount it via
+   the network:
+
+   .. important ::
+
+      The image used for launching an instance and mounting a share must have
+      the NFS packages provided by the distro. Example: The cirros image
+      created at the image service section is not enough.
+
+   .. important ::
+
+      Use an instance that is connected to the private network used to create
+      the share-network.
+
+::
+
+      $ manila access-allow demo-share1 ip INSTANCE_PRIVATE_NETWORK_IP
+
+Mount the share from an instance
+--------------------------------
+#. Get export location from share
+
+:: 
+    
+      $ manila show demo-share1
+
+
+#. Create a folder where the mount will be placed:
+
+::
+
+      $ mkdir ~/test_folder
+
+#. Mount the NFS share in the instance using the export location of the share:
+
+::
+
+      $ mount -v 10.254.0.6:/shares/share-0bfd69a1-27f0-4ef5-af17-7cd50bce6550 ~/test_folder
+
+
+For more information about how to manage shares, see the
+`OpenStack User Guide
+<http://docs.openstack.org/user-guide/index.html>`__.
