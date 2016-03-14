@@ -83,13 +83,13 @@ Verify operation of the Shared File Systems service.
 #. Source the ``admin`` credentials to gain access to
    admin-only CLI commands:
 
-   .. code-block:: console
+::
 
       $ source admin-openrc.sh
 
 #. List service components to verify successful launch of each process:
 
-   .. code-block:: console
+::
 
       $ manila service-list
       +------------------+----------------+------+---------+-------+----------------------------+-----------------+
@@ -98,37 +98,6 @@ Verify operation of the Shared File Systems service.
       | manila-scheduler | controller     | nova | enabled |   up  | 2014-10-18T01:30:54.000000 |       None      |
       | manila-share     | share1@generic | nova | enabled |   up  | 2014-10-18T01:30:57.000000 |       None      |
       +------------------+----------------+------+---------+-------+----------------------------+-----------------+
-
-Using a Cache Tier
-------------------
-
-An optional
-`cache tier <http://docs.ceph.com/docs/hammer/rados/operations/cache-tiering/>`_
-can be deployed by formatting at least one cache device and enabling cache
-tiering in the globals.yml configuration file.
-
-To prepare an OSD as a cache device, execute the following operations:
-
-::
-
-    # <WARNING ALL DATA ON $DISK will be LOST!>
-    # where $DISK is /dev/sdb or something similar
-    parted $DISK -s -- mklabel gpt mkpart KOLLA_CEPH_OSD_CACHE_BOOTSTRAP 1 -1
-
-Enable the Ceph cache tier in /etc/kolla/globals.yml:
-
-::
-
-    enable_ceph: "yes"
-    ceph_enable_cache: "yes"
-    # Valid options are [ forward, none, writeback ]
-    ceph_cache_mode: "writeback"
-
-After this run the playbooks as you normally would. For example:
-
-::
-
-    kolla-ansible deploy -i path/to/inventory
 
 Launch an Instance
 ~~~~~~~~~~~~~~~~~~~
@@ -150,7 +119,7 @@ Determine the configuration of the share server
 
 #. Source the admin credentials to gain access to admin-only CLI commands:
 
-   .. code-block:: console
+::
 
       $ source admin-openrc.sh
 
@@ -213,6 +182,7 @@ Determine the configuration of the share server
 #. Creating a share network
 
 ::
+
       $ manila share-network-create --name demo-share-network1 \
       --neutron-net-id PRIVATE_NETWORK_ID \
       --neutron-subnet-id PRIVATE_NETWORK_SUBNET_ID
