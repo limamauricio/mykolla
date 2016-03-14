@@ -79,20 +79,20 @@ Verify operation
 
 Verify operation of the Shared File Systems service.
 
-* Install Python Manila Client
+Install Python Manila Client
 
 ::
 
       $ pip install pyhton-manilaclient      
 
 
-* Source the ``admin`` credentials to gain access to admin-only CLI commands:
+Source the ``admin`` credentials to gain access to admin-only CLI commands:
 
 ::
 
       $ source admin-openrc.sh
 
-* List service components to verify successful launch of each process:
+List service components to verify successful launch of each process:
 
 ::
 
@@ -117,13 +117,13 @@ NFS/CIFS shares are served.
 Determine the configuration of the share server
 -----------------------------------------------
 
-* Source the admin credentials to gain access to admin-only CLI commands:
+Source the admin credentials to gain access to admin-only CLI commands:
 
 ::
 
       $ source admin-openrc.sh
 
-* Create a default share type before running manila-share service:
+Create a default share type before running manila-share service:
 
 ::
 
@@ -134,7 +134,7 @@ Determine the configuration of the share server
       | 8a35da28-0f74-490d-afff-23664ecd4f01 | default_share_type | public     | -          | driver_handles_share_servers : True | snapshot_support : True |$
       +--------------------------------------+--------------------+------------+------------+-------------------------------------+-------------------------+$
 
-#. Create a manila share server image to the Image service:
+Create a manila share server image to the Image service:
 
 ::
 
@@ -166,7 +166,7 @@ Determine the configuration of the share server
       | visibility       | public                               |
       +------------------+--------------------------------------+
 
-* List available networks to get id and subnets of the private network:
+List available networks to get id and subnets of the private network:
 
 ::
 
@@ -178,7 +178,7 @@ Determine the configuration of the share server
       | 7c6f9b37-76b4-463e-98d8-27e5686ed083 | private | 3482f524-8bff-4871-80d4-5774c2730728 172.16.1.0/24 |
       +--------------------------------------+---------+----------------------------------------------------+
 
-* Creating a share network
+Creating a share network
 
 ::
 
@@ -206,7 +206,7 @@ Determine the configuration of the share server
 Create a share
 --------------
 
-* Create a NFS share using the share network:
+Create a NFS share using the share network:
 
 ::
 
@@ -238,20 +238,20 @@ Create a share
       | metadata                    | {}                                   |
       +-----------------------------+--------------------------------------+
 
-* After some time, the share status should change from ``creating``
+After some time, the share status should change from ``creating``
 to ``available``:
 
 ::
 
       $ manila list
       +--------------------------------------+-------------+------+-------------+-----------+-----------+--------------------------------------+-----------------------------+-------------------+
-      | ID                                   | Name        | Size | Share Proto | Status    | Is Public | Share Type                           | Host                        | Availability Zone |
+      | ID                                   | Name        | Size | Share Proto | Status    | Is Public | Share Type Name                      | Host                        | Availability Zone |
       +--------------------------------------+-------------+------+-------------+-----------+-----------+--------------------------------------+-----------------------------+-------------------+
       | 5f8a0574-a95e-40ff-b898-09fd8d6a1fac | demo-share1 | 1    | NFS         | available | False     | 8a35da28-0f74-490d-afff-23664ecd4f01 | storagenode@generic#GENERIC | nova              |
       +--------------------------------------+-------------+------+-------------+-----------+-----------+--------------------------------------+-----------------------------+-------------------+
 
-* Configure user access to the new share before attempting to mount it via
-the network:
+Configure user access to the new share before attempting to mount it via the
+network:
 
 ::
 
@@ -259,20 +259,21 @@ the network:
 
 Mount the share from an instance
 --------------------------------
-* Get export location from share
+
+Get export location from share
 
 :: 
     
       $ manila show demo-share1
 
 
-* Create a folder where the mount will be placed:
+Create a folder where the mount will be placed:
 
 ::
 
       $ mkdir ~/test_folder
 
-* Mount the NFS share in the instance using the export location of the share:
+Mount the NFS share in the instance using the export location of the share:
 
 ::
 
