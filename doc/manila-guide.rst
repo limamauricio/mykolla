@@ -239,7 +239,7 @@ Create a share
       +-----------------------------+--------------------------------------+
 
 * After some time, the share status should change from ``creating``
-   to ``available``:
+to ``available``:
 
 ::
 
@@ -251,7 +251,7 @@ Create a share
       +--------------------------------------+-------------+------+-------------+-----------+-----------+--------------------------------------+-----------------------------+-------------------+
 
 * Configure user access to the new share before attempting to mount it via
-   the network:
+the network:
 
 ::
 
