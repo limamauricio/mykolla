@@ -79,6 +79,13 @@ Verify operation
 
 Verify operation of the Shared File Systems service.
 
+* Install Python Manila Client
+
+::
+
+      $ pip install pyhton-manilaclient      
+
+
 * Source the ``admin`` credentials to gain access to admin-only CLI commands:
 
 ::
@@ -98,7 +105,7 @@ Verify operation of the Shared File Systems service.
       +------------------+----------------+------+---------+-------+----------------------------+-----------------+
 
 Launch an Instance
-~~~~~~~~~~~~~~~~~~~
+------------------
 
 Before being able to create a share, the manila with the generic driver and
 the DHSS mode enabled requires the definition of at least an image,
@@ -106,7 +113,7 @@ a network and a share-network for being used to create a share server.
 For that back end configuration, the share server is an instance where
 NFS/CIFS shares are served.
 
-.. note::
+* Note::
 
    This configuration automatically creates a cinder volume for every share.
    The cinder volumes are attached to share servers according to the
@@ -164,7 +171,7 @@ Determine the configuration of the share server
       | visibility       | public                               |
       +------------------+--------------------------------------+
 
-#. List available networks in order to get id and subnets of the private
+* List available networks in order to get id and subnets of the private
    network:
 
 ::
@@ -177,7 +184,7 @@ Determine the configuration of the share server
       | 7c6f9b37-76b4-463e-98d8-27e5686ed083 | private | 3482f524-8bff-4871-80d4-5774c2730728 172.16.1.0/24 |
       +--------------------------------------+---------+----------------------------------------------------+
 
-#. Creating a share network
+* Creating a share network
 
 ::
 
@@ -205,7 +212,7 @@ Determine the configuration of the share server
 Create a share
 --------------
 
-#. Create a NFS share using the share network:
+* Create a NFS share using the share network:
 
 ::
 
@@ -237,7 +244,7 @@ Create a share
       | metadata                    | {}                                   |
       +-----------------------------+--------------------------------------+
 
-#. After some time, the share status should change from ``creating``
+* After some time, the share status should change from ``creating``
    to ``available``:
 
 ::
@@ -249,16 +256,16 @@ Create a share
       | 5f8a0574-a95e-40ff-b898-09fd8d6a1fac | demo-share1 | 1    | NFS         | available | False     | 8a35da28-0f74-490d-afff-23664ecd4f01 | storagenode@generic#GENERIC | nova              |
       +--------------------------------------+-------------+------+-------------+-----------+-----------+--------------------------------------+-----------------------------+-------------------+
 
-#. Configure user access to the new share before attempting to mount it via
+* Configure user access to the new share before attempting to mount it via
    the network:
 
-   .. important ::
+* Important ::
 
       The image used for launching an instance and mounting a share must have
       the NFS packages provided by the distro. Example: The cirros image
       created at the image service section is not enough.
 
-   .. important ::
+* Important ::
 
       Use an instance that is connected to the private network used to create
       the share-network.
@@ -269,20 +276,20 @@ Create a share
 
 Mount the share from an instance
 --------------------------------
-#. Get export location from share
+* Get export location from share
 
 :: 
     
       $ manila show demo-share1
 
 
-#. Create a folder where the mount will be placed:
+* Create a folder where the mount will be placed:
 
 ::
 
       $ mkdir ~/test_folder
 
-#. Mount the NFS share in the instance using the export location of the share:
+* Mount the NFS share in the instance using the export location of the share:
 
 ::
 
