@@ -166,8 +166,7 @@ Determine the configuration of the share server
       | visibility       | public                               |
       +------------------+--------------------------------------+
 
-* List available networks in order to get id and subnets of the private
-   network:
+* List available networks to get id and subnets of the private network:
 
 ::
 
