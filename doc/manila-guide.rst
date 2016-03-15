@@ -28,9 +28,7 @@ Networking service configuration requires the capability of networks being
 attached to a public router in order to create share networks.
 
 Before you proceed, ensure that Compute, Networking and Block storage
-services are properly working. For networking service, ensure that option
-2 is properly configured.
-
+services are properly working.
 
 Preparation and Deployment
 --------------------------
@@ -61,9 +59,11 @@ Cinder and Ceph are required, enable it in /etc/kolla/globals.yml:
 By default Manila uses flavor id 100 for its file systems. To Manila works
 either create a new flavor with id 100 or change the id to use default nova
 flavor ids. Ex: manila_instance_flavor_id: "2" to use the flavor m1.small
+Modify the file /etc/kolla/config/manila.conf and add the contents:
 
 ::
 
+    [generic]
     manila_instance_flavor_id: "2"
 
 
@@ -83,7 +83,7 @@ Install Python Manila Client
 
 ::
 
-      $ pip install pyhton-manilaclient      
+      $ pip install pyhton-manilaclient
 
 
 Source the ``admin`` credentials to gain access to admin-only CLI commands:
@@ -178,7 +178,7 @@ List available networks to get id and subnets of the private network:
       | 7c6f9b37-76b4-463e-98d8-27e5686ed083 | private | 3482f524-8bff-4871-80d4-5774c2730728 172.16.1.0/24 |
       +--------------------------------------+---------+----------------------------------------------------+
 
-Creating a share network
+Create a shared network
 
 ::
 
@@ -202,6 +202,14 @@ Creating a share network
       | id                | 58b2f0e6-5509-4830-af9c-97f525a31b14 |
       | description       | None                                 |
       +-------------------+--------------------------------------+
+
+Create a flavor (Required if you not defined manila_instance_flavor_id in
+/etc/kolla/config/manila.conf file)
+
+::
+
+     nova flavor-create manila-service-flavor 100 128 0 1    
+
 
 Create a share
 --------------
@@ -262,8 +270,8 @@ Mount the share from an instance
 
 Get export location from share
 
-:: 
-    
+::
+
       $ manila show demo-share1
 
 
