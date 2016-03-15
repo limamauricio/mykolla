@@ -285,40 +285,40 @@ Get export location from share
 
       # manila show demo-share1
     
-+-----------------------------+----------------------------------------------------------------------+
-| Property                    | Value                                                                |
-+-----------------------------+----------------------------------------------------------------------+
-| status                      | available                                                            |
-| share_type_name             | default_share_type                                                   |
-| description                 | None                                                                 |
-| availability_zone           | nova                                                                 |
-| share_network_id            | c6f4deae-b26e-407a-9b4d-b59588ac3e2e                                 |
-| export_locations            |                                                                      |
-|                             | path = 10.254.0.7:/shares/share-af7dcbcb-3906-4ea4-ad35-410a02e94714 |
-|                             | preferred = False                                                    |
-|                             | is_admin_only = False                                                |
-|                             | id = 660280aa-6f1d-4476-bcbd-06e905113de1                            |
-|                             | share_instance_id = af7dcbcb-3906-4ea4-ad35-410a02e94714             |
-| share_server_id             | 9db78d9c-5698-4aeb-98dc-6adeb9281b4a                                 |
-| host                        | ubuntu@generic#GENERIC                                               |
-| access_rules_status         | active                                                               |
-| snapshot_id                 | None                                                                 |
-| is_public                   | False                                                                |
-| task_state                  | None                                                                 |
-| snapshot_support            | True                                                                 |
-| id                          | d846134f-2532-4a64-b116-21290df9ee6d                                 |
-| size                        | 1                                                                    |
-| name                        | demo-shareX                                                          |
-| share_type                  | ae08f681-fdaa-4f61-b052-3847d012d84e                                 |
-| has_replicas                | False                                                                |
-| replication_type            | None                                                                 |
-| created_at                  | 2016-03-15T17:29:48.000000                                           |
-| share_proto                 | NFS                                                                  |
-| consistency_group_id        | None                                                                 |
-| source_cgsnapshot_member_id | None                                                                 |
-| project_id                  | d69f0f61e7dc43aa824218566f9d3ed5                                     |
-| metadata                    | {}                                                                   |
-+-----------------------------+----------------------------------------------------------------------+
+    +-----------------------------+----------------------------------------------------------------------+
+    | Property                    | Value                                                                |
+    +-----------------------------+----------------------------------------------------------------------+
+    | status                      | available                                                            |
+    | share_type_name             | default_share_type                                                   |
+    | description                 | None                                                                 |
+    | availability_zone           | nova                                                                 |
+    | share_network_id            | c6f4deae-b26e-407a-9b4d-b59588ac3e2e                                 |
+    | export_locations            |                                                                      |
+    |                             | path = 10.254.0.7:/shares/share-af7dcbcb-3906-4ea4-ad35-410a02e94714 |
+    |                             | preferred = False                                                    |
+    |                             | is_admin_only = False                                                |
+    |                             | id = 660280aa-6f1d-4476-bcbd-06e905113de1                            |
+    |                             | share_instance_id = af7dcbcb-3906-4ea4-ad35-410a02e94714             |
+    | share_server_id             | 9db78d9c-5698-4aeb-98dc-6adeb9281b4a                                 |
+    | host                        | ubuntu@generic#GENERIC                                               |
+    | access_rules_status         | active                                                               |
+    | snapshot_id                 | None                                                                 |
+    | is_public                   | False                                                                |
+    | task_state                  | None                                                                 |
+    | snapshot_support            | True                                                                 |
+    | id                          | d846134f-2532-4a64-b116-21290df9ee6d                                 |
+    | size                        | 1                                                                    |
+    | name                        | demo-shareX                                                          |
+    | share_type                  | ae08f681-fdaa-4f61-b052-3847d012d84e                                 |
+    | has_replicas                | False                                                                |
+    | replication_type            | None                                                                 |
+    | created_at                  | 2016-03-15T17:29:48.000000                                           |
+    | share_proto                 | NFS                                                                  |
+    | consistency_group_id        | None                                                                 |
+    | source_cgsnapshot_member_id | None                                                                 |
+    | project_id                  | d69f0f61e7dc43aa824218566f9d3ed5                                     |
+    | metadata                    | {}                                                                   |
+    +-----------------------------+----------------------------------------------------------------------+
 
 Create a folder where the mount will be placed:
 
