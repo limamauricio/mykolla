@@ -1,5 +1,5 @@
 Manila in Kolla
-=============
+===============
 
 Overview
 --------
@@ -14,8 +14,6 @@ virtual machine. The Shared File Systems service provides an infrastructure
 for managing and provisioning of file shares. The service also enables
 management of share types as well as share snapshots if a driver supports
 them.
-
-For more information, see `Configuration Reference Guide <http://docs.openstack.org/mitaka/config-reference/content/section_shared-file-systems-overview.html>`__.
 
 Important
 ---------
@@ -34,69 +32,85 @@ Preparation and Deployment
 --------------------------
 
 By default Manila uses neutron_plugin_agent = linuxbridge. But the default for
-Kolla is openvswitch, this guide will use Kolla default configuration, but you
+Kolla is openvswitch, this guide use Kolla default configuration, but you
 can change it in /etc/kolla/globals.yml:
 
-::
+.. code-block:: console
 
     # Valid options are [ openvswitch, linuxbridge ]
     #neutron_plugin_agent: "openvswitch"
 
-Enable Manila in /etc/kolla/globals.yml:
-
-::
-
-    enable_manila: "yes"
-
-
 Cinder and Ceph are required, enable it in /etc/kolla/globals.yml:
 
-::
+.. code-block:: console
 
     enable_cinder: "yes"
     enable_ceph: "yes"
 
-By default Manila uses flavor id 100 for its file systems. To Manila works
-either create a new flavor with id 100 or change the id to use default nova
-flavor ids. Ex: manila_instance_flavor_id: "2" to use the flavor m1.small. 
-Create or Modify the file /etc/kolla/config/manila.conf and add the contents:
+Enable Manila in /etc/kolla/globals.yml:
 
-::
+.. code-block:: console
+
+    enable_manila: "yes"
+
+By default Manila uses instance flavor id 100 for its file systems. For
+Manila to work, either create a new nova flavor with id 100 (using "nova
+flavor-create") or change manila_instance_flavor_id to use one of the
+default nova flavor ids.
+Ex: manila_instance_flavor_id: "2" to use nova default flavor m1.small.
+
+Create or modify the file /etc/kolla/config/manila.conf and add the contents:
+
+.. code-block:: console
 
     [generic]
     manila_instance_flavor_id: "2"
 
-
 Deploy the Manila OpenStack:
 
-::
+.. code-block:: console
 
-    kolla-ansible deploy -i path/to/inventory
-
+    # kolla-ansible deploy -i path/to/inventory
 
 Verify operation
 ----------------
+
+Ubuntu 14.04 have not the OpenStack repository updated for liberty. Add liberty
+repository on Ubuntu sources list to use manila client correctly and updated.
+
+.. code-block:: console
+
+    # apt-get install ubuntu-cloud-keyring
+    # echo "deb http://ubuntu-cloud.archive.canonical.com/ubuntu" \
+      "trusty-updates/liberty main" > \
+      /etc/apt/sources.list.d/cloudarchive-liberty.list
+    # apt-get update && apt-get dist-upgrade
 
 Verify operation of the Shared File Systems service.
 
 Install Python Manila Client
 
-::
+.. code-block:: console
 
-      $ pip install pyhton-manilaclient
+      # pip install pyhton-manilaclient
 
+Create credentials if do not.
+
+.. code-block:: console
+
+     # kolla-ansible post-deploy -i path/to/inventory
 
 Source the ``admin`` credentials to gain access to admin-only CLI commands:
 
-::
+.. code-block:: console
 
-      $ source admin-openrc.sh
+      # source /etc/kolla/admin-openrc.sh
 
 List service components to verify successful launch of each process:
 
-::
+.. code-block:: console
 
-      $ manila service-list
+      # manila service-list
       +------------------+----------------+------+---------+-------+----------------------------+-----------------+
       |      Binary      |    Host        | Zone |  Status | State |         Updated_at         | Disabled Reason |
       +------------------+----------------+------+---------+-------+----------------------------+-----------------+
@@ -113,64 +127,62 @@ a network and a share-network for being used to create a share server.
 For that back end configuration, the share server is an instance where
 NFS/CIFS shares are served.
 
-
 Determine the configuration of the share server
 -----------------------------------------------
 
 Source the admin credentials to gain access to admin-only CLI commands:
 
-::
+.. code-block:: console
 
-      $ source admin-openrc.sh
+      # source /etc/kolla/admin-openrc.sh
 
 Create a default share type before running manila-share service:
 
-::
+.. code-block:: console
 
-      $ manila type-create default_share_type True
-      +--------------------------------------+--------------------+------------+------------+-------------------------------------+-------------------------+$
-      | ID                                   | Name               | Visibility | is_default | required_extra_specs                | optional_extra_specs    |$
-      +--------------------------------------+--------------------+------------+------------+-------------------------------------+-------------------------+$
-      | 8a35da28-0f74-490d-afff-23664ecd4f01 | default_share_type | public     | -          | driver_handles_share_servers : True | snapshot_support : True |$
-      +--------------------------------------+--------------------+------------+------------+-------------------------------------+-------------------------+$
+      # manila type-create default_share_type True
+      +--------------------------------------+--------------------+------------+------------+-------------------------------------+-------------------------+
+      | ID                                   | Name               | Visibility | is_default | required_extra_specs                | optional_extra_specs    |
+      +--------------------------------------+--------------------+------------+------------+-------------------------------------+-------------------------+
+      | 8a35da28-0f74-490d-afff-23664ecd4f01 | default_share_type | public     | -          | driver_handles_share_servers : True | snapshot_support : True |
+      +--------------------------------------+--------------------+------------+------------+-------------------------------------+-------------------------+
 
 Create a manila share server image to the Image service:
 
-::
+.. code-block:: console
 
-      $ glance image-create \
-      --copy-from http://tarballs.openstack.org/manila-image-elements/images/manila-service-image-master.qcow2 \
-      --name "manila-service-image" \
-      --disk-format qcow2 \
-      --container-format bare \
+    # wget http://tarballs.openstack.org/manila-image-elements/images/manila-service-image-master.qcow2
+    # glance image-create --name "manila-service-image" \
+      --file manila-service-image-master.qcow2 \
+      --disk-format qcow2 --container-format bare \
       --visibility public --progress
-      [=============================>] 100%
-      +------------------+--------------------------------------+
-      | Property         | Value                                |
-      +------------------+--------------------------------------+
-      | checksum         | 48a08e746cf0986e2bc32040a9183445     |
-      | container_format | bare                                 |
-      | created_at       | 2016-01-26T19:52:24Z                 |
-      | disk_format      | qcow2                                |
-      | id               | 1fc7f29e-8fe6-44ef-9c3c-15217e83997c |
-      | min_disk         | 0                                    |
-      | min_ram          | 0                                    |
-      | name             | manila-service-image                 |
-      | owner            | e2c965830ecc4162a002bf16ddc91ab7     |
-      | protected        | False                                |
-      | size             | 306577408                            |
-      | status           | active                               |
-      | tags             | []                                   |
-      | updated_at       | 2016-01-26T19:52:28Z                 |
-      | virtual_size     | None                                 |
-      | visibility       | public                               |
-      +------------------+--------------------------------------+
+    [=============================>] 100%
+    +------------------+--------------------------------------+
+    | Property         | Value                                |
+    +------------------+--------------------------------------+
+    | checksum         | 48a08e746cf0986e2bc32040a9183445     |
+    | container_format | bare                                 |
+    | created_at       | 2016-01-26T19:52:24Z                 |
+    | disk_format      | qcow2                                |
+    | id               | 1fc7f29e-8fe6-44ef-9c3c-15217e83997c |
+    | min_disk         | 0                                    |
+    | min_ram          | 0                                    |
+    | name             | manila-service-image                 |
+    | owner            | e2c965830ecc4162a002bf16ddc91ab7     |
+    | protected        | False                                |
+    | size             | 306577408                            |
+    | status           | active                               |
+    | tags             | []                                   |
+    | updated_at       | 2016-01-26T19:52:28Z                 |
+    | virtual_size     | None                                 |
+    | visibility       | public                               |
+    +------------------+--------------------------------------+
 
 List available networks to get id and subnets of the private network:
 
-::
+.. code-block:: console
 
-      $ neutron net-list
+      # neutron net-list
       +--------------------------------------+---------+----------------------------------------------------+
       | id                                   | name    | subnets                                            |
       +--------------------------------------+---------+----------------------------------------------------+
@@ -180,9 +192,9 @@ List available networks to get id and subnets of the private network:
 
 Create a shared network
 
-::
+.. code-block:: console
 
-      $ manila share-network-create --name demo-share-network1 \
+      # manila share-network-create --name demo-share-network1 \
       --neutron-net-id PRIVATE_NETWORK_ID \
       --neutron-subnet-id PRIVATE_NETWORK_SUBNET_ID
       +-------------------+--------------------------------------+
@@ -206,19 +218,18 @@ Create a shared network
 Create a flavor (Required if you not defined manila_instance_flavor_id in
 /etc/kolla/config/manila.conf file)
 
-::
+.. code-block:: console
 
-     nova flavor-create manila-service-flavor 100 128 0 1    
-
+     # nova flavor-create manila-service-flavor 100 128 0 1
 
 Create a share
 --------------
 
 Create a NFS share using the share network:
 
-::
+.. code-block:: console
 
-      $ manila create NFS 1 --name demo-share1 --share-network demo-share-network1
+      # manila create NFS 1 --name demo-share1 --share-network demo-share-network1
       +-----------------------------+--------------------------------------+
       | Property                    | Value                                |
       +-----------------------------+--------------------------------------+
@@ -249,9 +260,9 @@ Create a NFS share using the share network:
 After some time, the share status should change from ``creating``
 to ``available``:
 
-::
+.. code-block:: console
 
-      $ manila list
+      # manila list
       +--------------------------------------+-------------+------+-------------+-----------+-----------+--------------------------------------+-----------------------------+-------------------+
       | ID                                   | Name        | Size | Share Proto | Status    | Is Public | Share Type Name                      | Host                        | Availability Zone |
       +--------------------------------------+-------------+------+-------------+-----------+-----------+--------------------------------------+-----------------------------+-------------------+
@@ -261,31 +272,31 @@ to ``available``:
 Configure user access to the new share before attempting to mount it via the
 network:
 
-::
+.. code-block:: console
 
-      $ manila access-allow demo-share1 ip INSTANCE_PRIVATE_NETWORK_IP
+      # manila access-allow demo-share1 ip INSTANCE_PRIVATE_NETWORK_IP
 
 Mount the share from an instance
 --------------------------------
 
 Get export location from share
 
-::
+.. code-block:: console
 
-      $ manila show demo-share1
+      # manila show demo-share1
 
 
 Create a folder where the mount will be placed:
 
-::
+.. code-block:: console
 
-      $ mkdir ~/test_folder
+      # mkdir ~/test_folder
 
 Mount the NFS share in the instance using the export location of the share:
 
-::
+.. code-block:: console
 
-      $ mount -v 10.254.0.6:/shares/share-0bfd69a1-27f0-4ef5-af17-7cd50bce6550 ~/test_folder
+      # mount -v 10.254.0.6:/shares/share-0bfd69a1-27f0-4ef5-af17-7cd50bce6550 ~/test_folder
 
 
 For more information about how to manage shares, see the
