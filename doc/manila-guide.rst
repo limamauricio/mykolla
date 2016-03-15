@@ -58,8 +58,8 @@ Cinder and Ceph are required, enable it in /etc/kolla/globals.yml:
 
 By default Manila uses flavor id 100 for its file systems. To Manila works
 either create a new flavor with id 100 or change the id to use default nova
-flavor ids. Ex: manila_instance_flavor_id: "2" to use the flavor m1.small.
-Modify the file /etc/kolla/config/manila.conf and add the contents:
+flavor ids. Ex: manila_instance_flavor_id: "2" to use the flavor m1.small. 
+Create or Modify the file /etc/kolla/config/manila.conf and add the contents:
 
 ::
 
