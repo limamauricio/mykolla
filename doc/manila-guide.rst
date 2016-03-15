@@ -141,11 +141,16 @@ Create a default share type before running manila-share service:
 .. code-block:: console
 
       # manila type-create default_share_type True
-      +--------------------------------------+--------------------+------------+------------+-------------------------------------+-------------------------+
-      | ID                                   | Name               | Visibility | is_default | required_extra_specs                | optional_extra_specs    |
-      +--------------------------------------+--------------------+------------+------------+-------------------------------------+-------------------------+
-      | 8a35da28-0f74-490d-afff-23664ecd4f01 | default_share_type | public     | -          | driver_handles_share_servers : True | snapshot_support : True |
-      +--------------------------------------+--------------------+------------+------------+-------------------------------------+-------------------------+
+    +----------------------+--------------------------------------+
+    | Property             | Value                                |
+    +----------------------+--------------------------------------+
+    | required_extra_specs | driver_handles_share_servers : True  |
+    | Name                 | default_share_type                   |
+    | Visibility           | public                               |
+    | is_default           | -                                    |
+    | ID                   | 6e1e803f-1c37-4660-a65a-c1f2b54b6e17 |
+    | optional_extra_specs | snapshot_support : True              |
+    +----------------------+--------------------------------------+
 
 Create a manila share server image to the Image service:
 
@@ -263,11 +268,11 @@ to ``available``:
 .. code-block:: console
 
       # manila list
-      +--------------------------------------+-------------+------+-------------+-----------+-----------+--------------------------------------+-----------------------------+-------------------+
-      | ID                                   | Name        | Size | Share Proto | Status    | Is Public | Share Type Name                      | Host                        | Availability Zone |
-      +--------------------------------------+-------------+------+-------------+-----------+-----------+--------------------------------------+-----------------------------+-------------------+
-      | 5f8a0574-a95e-40ff-b898-09fd8d6a1fac | demo-share1 | 1    | NFS         | available | False     | 8a35da28-0f74-490d-afff-23664ecd4f01 | storagenode@generic#GENERIC | nova              |
-      +--------------------------------------+-------------+------+-------------+-----------+-----------+--------------------------------------+-----------------------------+-------------------+
+    +--------------------------------------+----------+------+-------------+-----------+-----------+--------------------+------------------------+-------------------+
+    | ID                                   | Name        | Size | Share Proto | Status    | Is Public | Share Type Name    | Host                   | Availability Zone |
+    +--------------------------------------+----------+------+-------------+-----------+-----------+--------------------+------------------------+-------------------+
+    | e1e06b14-ba17-48d4-9e0b-ca4d59823166 | demo-share1 | 1    | NFS         | available | False     | default_share_type | share1@generic#GENERIC | nova              |
+    +--------------------------------------+----------+------+-------------+-----------+-----------+--------------------+------------------------+-------------------+
 
 Configure user access to the new share before attempting to mount it via the
 network:
@@ -292,31 +297,31 @@ Get export location from share
     | share_type_name             | default_share_type                                                   |
     | description                 | None                                                                 |
     | availability_zone           | nova                                                                 |
-    | share_network_id            | c6f4deae-b26e-407a-9b4d-b59588ac3e2e                                 |
+    | share_network_id            | fa07a8c3-598d-47b5-8ae2-120248ec837f                                 |
     | export_locations            |                                                                      |
-    |                             | path = 10.254.0.7:/shares/share-af7dcbcb-3906-4ea4-ad35-410a02e94714 |
+    |                             | path = 10.254.0.3:/shares/share-422dc546-8f37-472b-ac3c-d23fe410d1b6 |
     |                             | preferred = False                                                    |
     |                             | is_admin_only = False                                                |
-    |                             | id = 660280aa-6f1d-4476-bcbd-06e905113de1                            |
-    |                             | share_instance_id = af7dcbcb-3906-4ea4-ad35-410a02e94714             |
-    | share_server_id             | 9db78d9c-5698-4aeb-98dc-6adeb9281b4a                                 |
-    | host                        | ubuntu@generic#GENERIC                                               |
+    |                             | id = 5894734d-8d9a-49e4-b53e-7154c9ce0882                            |
+    |                             | share_instance_id = 422dc546-8f37-472b-ac3c-d23fe410d1b6             |
+    | share_server_id             | 4782feef-61c8-4ffb-8d95-69fbcc380a52                                 |
+    | host                        | share1@generic#GENERIC                                               |
     | access_rules_status         | active                                                               |
     | snapshot_id                 | None                                                                 |
     | is_public                   | False                                                                |
     | task_state                  | None                                                                 |
     | snapshot_support            | True                                                                 |
-    | id                          | d846134f-2532-4a64-b116-21290df9ee6d                                 |
+    | id                          | e1e06b14-ba17-48d4-9e0b-ca4d59823166                                 |
     | size                        | 1                                                                    |
-    | name                        | demo-shareX                                                          |
-    | share_type                  | ae08f681-fdaa-4f61-b052-3847d012d84e                                 |
+    | name                        | demo-share1                                                          |
+    | share_type                  | 6e1e803f-1c37-4660-a65a-c1f2b54b6e17                                 |
     | has_replicas                | False                                                                |
     | replication_type            | None                                                                 |
-    | created_at                  | 2016-03-15T17:29:48.000000                                           |
+    | created_at                  | 2016-03-15T18:59:12.000000                                           |
     | share_proto                 | NFS                                                                  |
     | consistency_group_id        | None                                                                 |
     | source_cgsnapshot_member_id | None                                                                 |
-    | project_id                  | d69f0f61e7dc43aa824218566f9d3ed5                                     |
+    | project_id                  | 9dc02df0f2494286ba0252b3c81c01d0                                     |
     | metadata                    | {}                                                                   |
     +-----------------------------+----------------------------------------------------------------------+
 
@@ -330,7 +335,7 @@ Mount the NFS share in the instance using the export location of the share:
 
 .. code-block:: console
 
-      # mount -v 10.254.0.7:/shares/share-af7dcbcb-3906-4ea4-ad35-410a02e94714 ~/test_folder
+      # mount -v 10.254.0.3:/shares/share-422dc546-8f37-472b-ac3c-d23fe410d1b6 ~/test_folder
 
 
 For more information about how to manage shares, see the
